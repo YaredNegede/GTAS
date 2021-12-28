@@ -155,11 +155,12 @@
           
         </dependency>
 
-			<dependency>
-				<groupId>org.javassist</groupId>
-				<artifactId>javassist</artifactId>
-				<version>3.24.0-GA</version>
-			</dependency>
+			<!-- https://mvnrepository.com/artifact/javassist/javassist -->
+<dependency>
+    <groupId>javassist</groupId>
+    <artifactId>javassist</artifactId>
+    <version>3.12.1.GA</version>
+</dependency>
 
 
 		<dependency>
