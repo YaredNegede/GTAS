@@ -9,8 +9,8 @@ services:
       dockerfile: docker-resources/proxy.Dockerfile
     restart: always
     ports:
-      - 443:443
-      - 80:80
+      - 8443:443
+      - 8080:8080
     networks:
       - GTAS_webapp-network
     secrets:
