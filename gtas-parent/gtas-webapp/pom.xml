@@ -25,13 +25,6 @@
     </properties>
 
     <dependencies>
-	    <dependency>
-               <groupId>org.example</groupId>
-		<artifactId>iamajar</artifactId>
-		<version>1.0</version>
-		<scope>system</scope>
-		<systemPath>${project.basedir}/lib/iamajar.jar</systemPath>
-	    </dependency>
 
         <dependency>
             <groupId>gov.gtas</groupId>
