@@ -27,8 +27,8 @@ services:
       context: ./gtas-parent
       dockerfile: web-app.Dockerfile
     ports:
-      - 8080:8080
-      - 8443:8443
+      - 8080:80
+      - 8443:443
     environment: 
       - DB_HOST=mariadb
       - KIBANA_HOST=kibana
