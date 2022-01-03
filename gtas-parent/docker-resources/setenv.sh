@@ -5,3 +5,4 @@ export NEO4J_PASSWORD=$(cat /run/secrets/webapp_neo4j_password)
 export ELASTIC_USERNAME=elastic
 export ELASTIC_PASSWORD=$(cat /run/secrets/elastic_bootstrap_password)
 export ELASTICSEARCH_HOST=elasticsearch
+export EMAIL_SENDER_USERNAME=admin

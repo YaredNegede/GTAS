@@ -35,14 +35,14 @@ body{
 .tg th.id{padding:5px 5px;font-weight: bold;border-style:solid;border-width:1px;overflow:hidden;word-break:normal}
 
 .gtas-brand:before {
-	content: 'Global Travel Assessment System'
+	content: 'Ethiopian Advanced Passenger Information System'
 }
 .gtas-brand-sub {
 	font-size: 13px;
 }
 @media (max-width:550px) {
     .gtas-brand:before {
-        content: 'GTAS'
+        content: 'EAPI'
     }
 }
 	

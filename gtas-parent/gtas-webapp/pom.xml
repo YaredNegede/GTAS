@@ -262,7 +262,7 @@
                         </goals>
 						<phase>generate-resources</phase>
 						<configuration>
-                            <nodeVersion>v8.11.1</nodeVersion>
+                            <nodeVersion>v14.18.1</nodeVersion>
                         </configuration>
                     </execution>
 					<execution>

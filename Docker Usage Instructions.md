@@ -117,3 +117,8 @@ This will spin up containers:
 - `logstash`
 
 - `kibana` - <http://localhost:5601>
+
+
+docker-compose -f elk-docker-compose.yml -f neo4j-etl-docker-compose.yml -f docker-compose.yml -f local-deployment.yml pull
+
+docker-compose -f elk-docker-compose.yml -f neo4j-etl-docker-compose.yml -f docker-compose.yml -f local-deployment.yml up
