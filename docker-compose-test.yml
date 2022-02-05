@@ -1,87 +1,84 @@
 version: '3.7'
 services:
 
-#  http-proxy:
-#    image: wcogtas/http-proxy:1.0.0
-#    container_name: http-proxy
-#    build:
-#      context: ./gtas-parent
-#      dockerfile: docker-resources/proxy.Dockerfile
-#    restart: always
-#    ports:
-#      - 8443:443
-#      - 8080:8080
-#    networks:
-#      - GTAS_webapp-network
-#    secrets:
-#      - elastic_bootstrap_password
-#      - source: webapp_cert
-#        target: /wcogtas.org.crt
-#      - source: webapp_key
-#        target: /wcogtas.org.key
-
-  web-app:
-    image: wcogtas/web-app:1.0.0
-    container_name: web-app
-    build:
-      context: ./gtas-parent
-      dockerfile: web-app.Dockerfile
+  nginx:
+    image: nginx:latest
+    container_name: nginx_container
+    depends_on:
+      - elasticsearch
+      - logstash
+      - kibana
     ports:
-      - 8080:8080
-      - 8443:8443
-    environment:
-      - DB_HOST=mariadb
-      - KIBANA_HOST=kibana
-      - NEO4J_HOST=neo4j
-      - ACTIVEMQ_HOST=activemq
-      - PROXY_HOST=httpproxy
-      - ELASTICSEARCH=elasticsearch
+      - "8090:80"
+    volumes:
+      - ./yared/nginx.conf:/etc/nginx/nginx.conf
     networks:
       - GTAS_webapp-network
-    restart: always
-    secrets:
-     - mysql_webapp_user
-     - mysql_webapp_password
-     - webapp_neo4j_user
-     - webapp_neo4j_password
-     - elastic_bootstrap_password
-     - source: webapp_cert
-       target: /usr/local/tomcat/conf/wcogtas.org.crt
-     - source: webapp_key
-       target: /usr/local/tomcat/conf/wcogtas.org.key
-     - source: elastic_cert
-       target: /usr/local/tomcat/conf/elasticsearch-node1.crt
-     - source: elastic_key
-       target: /usr/local/tomcat/conf/elasticsearch-node1.key
-     - source: elastic_ca
-       target: /usr/local/tomcat/conf/elastic-ca.crt
-    volumes:
-      - m2:/root/.m2
-      - scheduler-logs:/scheduler-logs
+    restart: on-failure
 
-  gtas-scheduler:
-    image: wcogtas/gtas-scheduler:1.0.0
-    container_name: gtas-scheduler
-    build: 
-      context: .
-      dockerfile: ./gtas-parent/gtas-job-scheduler-war/gtas-scheduler.Dockerfile
-    restart: always
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.4.0
+    container_name: elasticsearch_fake
     environment:
-      DB_HOST: mariadb
-      KIBANA_HOST: kibana
-      NEO4J_HOST: neo4j
-      ACTIVEMQ_HOST: activemq
+      ELASTIC_USERNAME: 'elastic'
+      ELASTIC_PASSWORD: 'admin'
+      xpack.security.enabled: 'false'
+      discovery.type: 'single-node'
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+      nofile:
+        soft: 65536
+        hard: 65536
+    cap_add:
+      - IPC_LOCK
     volumes:
-      - scheduler-logs:/usr/local/tomcat/logs
-    secrets:
-      - mysql_processor_user
-      - mysql_processor_password
-      - webapp_neo4j_user
-      - webapp_neo4j_password
+      - elasticsearch-data:/usr/share/elasticsearch/data
+    ports:
+      - "9200:9200"
+      - "9300:9300"
     networks:
       - GTAS_webapp-network
-    depends_on: 
-      - activemq
+    restart: on-failure
+
+  kibana:
+    container_name: kibana_fake
+    image: docker.elastic.co/kibana/kibana:7.0.0
+    environment:
+      ELASTICSEARCH_HOSTS: 'http://elasticsearch:9200'
+    ports:
+      - "80:5601"
+    depends_on:
+      - elasticsearch
+    networks:
+      - GTAS_webapp-network
+    restart: on-failure
+
+  logstash:
+    container_name: logstash_fake
+    build:
+      context: ./yared
+      dockerfile: ./docker/Dockerfile
+    ports:
+      - "5044:5044"
+    expose:
+      - "5044"
+    environment:
+      LS_JAVA_OPTS: "-Xmx256m -Xms256m"
+      MARIADB_HOST: 'mariadb'
+      MARIADB_USER: 'logstash'
+      MARIADB_PASSWORD: 'admin'
+      LOGSTASH_DIR: '/usr/share/logstash'
+      ELASTIC_HOST: 'http://elasticsearch:9200'
+      ES_USERNAME: 'elastic'
+      ES_PASSWORD: 'admin'
+      LOGSTASH_LIB: '/usr/share/logstash/logstash-core/lib/jars'
+    networks:
+      - GTAS_webapp-network
+    depends_on:
+      - elasticsearch
+    restart: on-failure
 
   activemq:
     image: rmohr/activemq:5.15.9
@@ -165,6 +162,8 @@ volumes:
   db-data:
   m2:
   scheduler-logs:
+  elasticsearch-data:
+    driver: local
 
 networks:
   GTAS_webapp-network:

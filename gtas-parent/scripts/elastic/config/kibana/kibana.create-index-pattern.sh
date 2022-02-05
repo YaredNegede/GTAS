@@ -7,7 +7,7 @@
 KIBANA_HOST='localhost'
 
 #Default port
-KIBANA_PORT=5601
+KIBANA_PORT=80
 
 URL="http://$KIBANA_HOST:$KIBANA_PORT"
 

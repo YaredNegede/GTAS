@@ -1,0 +1,90 @@
+version: '3.7'
+
+services:
+
+  nginx:
+    image: nginx:latest
+    container_name: nginx_container
+    depends_on:
+      - elasticsearch
+      - logstash
+      - kibana
+    ports:
+      - "8090:80"
+    volumes:
+      - ./config/nginx.conf:/etc/nginx/nginx.conf
+    networks:
+      - GTAS_webapp-network
+    restart: on-failure
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.4.0
+    container_name: elasticsearch_fake
+    environment:
+       ELASTIC_USERNAME: 'elastic'
+       ELASTIC_PASSWORD: 'admin'
+       xpack.security.enabled: 'false'
+       discovery.type: 'single-node'
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+      nofile:
+        soft: 65536
+        hard: 65536
+    cap_add:
+      - IPC_LOCK
+    volumes:
+      - elasticsearch-data:/usr/share/elasticsearch/data
+    ports:
+      - "9200:9200"
+      - "9300:9300"
+    networks:
+      - GTAS_webapp-network
+    restart: on-failure
+
+  kibana:
+    container_name: kibana_fake
+    image: docker.elastic.co/kibana/kibana:7.0.0
+    environment:
+      ELASTICSEARCH_HOSTS: 'http://elasticsearch:9200'
+    ports:
+      - "80:5601"
+    depends_on:
+      - elasticsearch
+    networks:
+      - GTAS_webapp-network
+    restart: on-failure
+
+  logstash:
+    container_name: logstash_fake
+    build:
+      context: .
+      dockerfile: ./docker/Dockerfile
+    ports:
+      - "5044:5044"
+    expose:
+      - "5044"
+    environment:
+      LS_JAVA_OPTS: "-Xmx256m -Xms256m"
+      MARIADB_HOST: 'mariadb'
+      MARIADB_USER: 'logstash'
+      MARIADB_PASSWORD: 'admin'
+      LOGSTASH_DIR: '/usr/share/logstash'
+      ELASTIC_HOST: 'http://elasticsearch:9200'
+      ES_USERNAME: 'elastic'
+      ES_PASSWORD: 'admin'
+      LOGSTASH_LIB: '/usr/share/logstash/logstash-core/lib/jars'
+    networks:
+      - GTAS_webapp-network
+    depends_on:
+      - elasticsearch
+    restart: on-failure
+
+volumes:
+  elasticsearch-data:
+    driver: local
+
+networks:
+  GTAS_webapp-network:
+    attachable: true
